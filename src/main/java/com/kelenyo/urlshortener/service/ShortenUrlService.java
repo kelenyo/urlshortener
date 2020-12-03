@@ -1,5 +1,6 @@
 package com.kelenyo.urlshortener.service;
 
+import com.kelenyo.urlshortener.dto.UrlRequest;
 import com.kelenyo.urlshortener.models.ShortenUrl;
 import com.kelenyo.urlshortener.repositories.ShortenUrlRepository;
 import org.springframework.stereotype.Service;
@@ -19,13 +20,14 @@ public class ShortenUrlService {
         this.conversion = baseConversion;
     }
 
-    public String convertToShortUrlAndSave(String url, String code) {
-        System.out.println("URL:" + url);
-        System.out.println("CODE:" + code);
+    public String convertToShortUrlAndSave(UrlRequest urlRequest) {
+        System.out.println("URL: " + urlRequest.getUrl());
+        System.out.println("CODE: " + urlRequest.getCode());
+        String url;
 
-        if(validateURL(url)) {
+        if(validateURL(urlRequest.getUrl())) {
             var shortenUrl = new ShortenUrl();
-            url = sanitizeURL(url);
+            url = sanitizeURL(urlRequest.getUrl());
             // Check if the url is already entered in the db.
             Optional<ShortenUrl> exitURL = Optional.ofNullable(shortenUrlRepository.findByUrl(url));
             if(exitURL.isPresent()) {
@@ -33,7 +35,7 @@ public class ShortenUrlService {
             } else {
                 shortenUrl.setUrl(url);
                 shortenUrl.setCreated(LocalDateTime.now());
-                shortenUrl.setCode(code);
+                shortenUrl.setCode(urlRequest.getCode());
                 var entity = shortenUrlRepository.save(shortenUrl);
                 //shortenUrl.setCode(conversion.encode(entity.getId()));
                 System.out.println(entity.getId());
