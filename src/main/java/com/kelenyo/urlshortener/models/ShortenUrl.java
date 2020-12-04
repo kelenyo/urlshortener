@@ -1,37 +1,28 @@
 package com.kelenyo.urlshortener.models;
 
 import java.time.LocalDateTime;
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.UniqueConstraint;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "shorten_url", uniqueConstraints={@UniqueConstraint(columnNames={"code"})})
+@Table(name = "shorten_url")
 public class ShortenUrl {
 
     @Id
     @GeneratedValue
-    @Column(name="id")
     private Long id;
-
-    @Column(name="code")
     private String code;
-
-    @Column(name="url")
     private String url;
-
-    @Column(name="created")
     private LocalDateTime created;
 
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

@@ -1,21 +1,16 @@
 package com.kelenyo.urlshortener.controllers;
 
-
 import com.kelenyo.urlshortener.dto.UrlRequest;
+import com.kelenyo.urlshortener.models.ShortenUrl;
 import com.kelenyo.urlshortener.service.ShortenUrlService;
-import com.kelenyo.urlshortener.service.representation.ShortenUrlResponse;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.annotations.ApiOperation;
 
-import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 
-
 @RestController
-@RequestMapping("/api")
 public class ShortenUrlController {
 
     private final ShortenUrlService shortenUrlService;
@@ -32,7 +27,7 @@ public class ShortenUrlController {
 
     @ApiOperation(value = "Convert new url", notes = "Converts long url to short url")
     @RequestMapping(value = "/createshorturl", method=RequestMethod.POST)
-    public String convertToShortUrl(@RequestBody UrlRequest urlRequest, HttpServletRequest request) {
+    public ShortenUrl convertToShortUrl(@RequestBody UrlRequest urlRequest) {
         return shortenUrlService.convertToShortUrlAndSave(urlRequest);
     }
 

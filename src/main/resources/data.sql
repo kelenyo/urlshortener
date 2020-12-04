@@ -1,0 +1,1 @@
+insert into shorten_url (id, code, created, url) values (104, 'a3urza', '2020-12-03 01:11:23', 'http://google.com');

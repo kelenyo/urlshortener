@@ -3,6 +3,8 @@ package com.kelenyo.urlshortener.service;
 import com.kelenyo.urlshortener.dto.UrlRequest;
 import com.kelenyo.urlshortener.models.ShortenUrl;
 import com.kelenyo.urlshortener.repositories.ShortenUrlRepository;
+import com.kelenyo.urlshortener.service.exception.UnknownCodeException;
+import com.kelenyo.urlshortener.service.exception.UnknownUrlException;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
@@ -20,34 +22,40 @@ public class ShortenUrlService {
         this.conversion = baseConversion;
     }
 
-    public String convertToShortUrlAndSave(UrlRequest urlRequest) {
-        System.out.println("URL: " + urlRequest.getUrl());
-        System.out.println("CODE: " + urlRequest.getCode());
-        String url;
+    public ShortenUrl convertToShortUrlAndSave(UrlRequest urlRequest) {
 
         if(validateURL(urlRequest.getUrl())) {
             var shortenUrl = new ShortenUrl();
-            url = sanitizeURL(urlRequest.getUrl());
+            String url = sanitizeURL(urlRequest.getUrl());
+
             // Check if the url is already entered in the db.
             Optional<ShortenUrl> exitURL = Optional.ofNullable(shortenUrlRepository.findByUrl(url));
-            if(exitURL.isPresent()) {
+            Optional<ShortenUrl> exitCode = Optional.ofNullable(shortenUrlRepository.findByCode(urlRequest.getCode()));
 
+            if(exitURL.isPresent()) {
+                throw new UnknownUrlException();
+            } else if(exitCode.isPresent()) {
+                throw new UnknownCodeException();
             } else {
                 shortenUrl.setUrl(url);
                 shortenUrl.setCreated(LocalDateTime.now());
-                shortenUrl.setCode(urlRequest.getCode());
-                var entity = shortenUrlRepository.save(shortenUrl);
-                //shortenUrl.setCode(conversion.encode(entity.getId()));
-                System.out.println(entity.getId());
-                return conversion.encode(entity.getId());
+                shortenUrlRepository.save(shortenUrl);
+                var newCode = urlRequest.getCode().isBlank() ?
+                        conversion.generateRandomAlphanumericString() : urlRequest.getCode();
+                shortenUrl.setCode(newCode);
+
+                return shortenUrl;
             }
 
         }
-        return "A";
+
+        throw new UnknownUrlException();
     }
 
     public String getOriginalUrl(String shortUrlCode) {
+        System.out.println("shortUrlCode: " + shortUrlCode);
         var entity = shortenUrlRepository.findByCode(shortUrlCode);
+        System.out.println("getUrl: " + entity.getUrl());
 
         return entity.getUrl();
     }
@@ -63,10 +71,10 @@ public class ShortenUrlService {
     }
 
     private String sanitizeURL(String url) {
-        if (url.substring(0, 7).equals("http://"))
+        if (url.startsWith("http://"))
             url = url.substring(7);
 
-        if (url.substring(0, 8).equals("https://"))
+        if (url.startsWith("https://"))
             url = url.substring(8);
 
         if (url.charAt(url.length() - 1) == '/')
