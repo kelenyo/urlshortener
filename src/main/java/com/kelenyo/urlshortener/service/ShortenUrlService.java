@@ -7,6 +7,7 @@ import com.kelenyo.urlshortener.service.exception.UnknownCodeException;
 import com.kelenyo.urlshortener.service.exception.UnknownUrlException;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityNotFoundException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -39,10 +40,8 @@ public class ShortenUrlService {
             } else {
                 shortenUrl.setUrl(url);
                 shortenUrl.setCreated(LocalDateTime.now());
+                shortenUrl.setCode("9hvgvf");
                 shortenUrlRepository.save(shortenUrl);
-                var newCode = urlRequest.getCode().isBlank() ?
-                        conversion.generateRandomAlphanumericString() : urlRequest.getCode();
-                shortenUrl.setCode(newCode);
 
                 return shortenUrl;
             }
@@ -53,11 +52,12 @@ public class ShortenUrlService {
     }
 
     public String getOriginalUrl(String shortUrlCode) {
-        System.out.println("shortUrlCode: " + shortUrlCode);
-        var entity = shortenUrlRepository.findByCode(shortUrlCode);
-        System.out.println("getUrl: " + entity.getUrl());
+        Optional<ShortenUrl> entity = Optional.ofNullable(shortenUrlRepository.findByCode(shortUrlCode));
+        if(!entity.isPresent()) {
+            throw new UnknownCodeException();
+        }
 
-        return entity.getUrl();
+        return entity.get().getUrl();
     }
 
     private boolean validateURL(String url) {
