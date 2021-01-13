@@ -1,10 +1,11 @@
 package com.kelenyo.urlshortener.service.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 
-public class AlreadyExistingCodeException extends ShortenerException {
+public class AlreadyExistingCodeException extends ResponseStatusException {
     public AlreadyExistingCodeException() {
-        super("DUPLICATE_CODE", HttpStatus.NOT_ACCEPTABLE);
+        super(HttpStatus.NOT_ACCEPTABLE, "Code already existing");
     }
 }

@@ -1,10 +1,11 @@
 package com.kelenyo.urlshortener.service.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 
-public class UnknownUrlException extends ShortenerException {
+public class UnknownUrlException extends ResponseStatusException {
     public UnknownUrlException() {
-        super("BAD_URL", HttpStatus.BAD_REQUEST);
+        super(HttpStatus.BAD_REQUEST, "Invalid URL");
     }
 }

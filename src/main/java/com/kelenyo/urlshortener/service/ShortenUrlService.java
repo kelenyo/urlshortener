@@ -62,6 +62,7 @@ public class ShortenUrlService {
 
     private boolean validateURL(String url) {
         try {
+
             new URL(url).toURI();
             return true;
         }

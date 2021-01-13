@@ -1,7 +1,6 @@
 package com.kelenyo.urlshortener.controllers;
 
 import com.kelenyo.urlshortener.dto.UrlRequest;
-import com.kelenyo.urlshortener.models.ShortenUrl;
 import com.kelenyo.urlshortener.service.ShortenUrlService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,7 +19,7 @@ public class ShortenUrlController {
         this.shortenUrlService = shortenUrlService;
     }
 
-    @RequestMapping(path = "/", method = RequestMethod.GET)
+    @GetMapping(path = "/")
     public String welcome() {
         return "Welcome to my demo";
     }
@@ -33,12 +32,16 @@ public class ShortenUrlController {
     @ApiOperation(value = "Convert new url", notes = "Converts long url to short url")
     @PostMapping(value = "/createshorturl", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> convertToShortUrl(@RequestBody UrlRequest urlRequest) {
-        System.out.println("urlRequest " + urlRequest.getUrl());
-        return new ResponseEntity<>(shortenUrlService.convertToShortUrlAndSave(urlRequest), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(shortenUrlService.convertToShortUrlAndSave(urlRequest), HttpStatus.CREATED);
     }
 
+    /**
+     * Finds original url from short url and redirects.
+     *
+     * @param shortUrl to be find and redirected.
+     */
     @ApiOperation(value = "Redirect", notes = "Finds original url from short url and redirects")
-    @RequestMapping(value = "/{shortUrl}", method=RequestMethod.GET)
+    @GetMapping(value = "/{shortUrl}")
     public ResponseEntity<Void> getAndRedirect(@PathVariable String shortUrl) {
         var url = shortenUrlService.getOriginalUrl(shortUrl);
         return ResponseEntity.status(HttpStatus.FOUND)
