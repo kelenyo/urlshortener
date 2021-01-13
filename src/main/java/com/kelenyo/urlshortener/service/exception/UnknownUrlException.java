@@ -4,9 +4,7 @@ import org.springframework.http.HttpStatus;
 
 
 public class UnknownUrlException extends ShortenerException {
-
     public UnknownUrlException() {
-        super("UNKNOWN_URL", HttpStatus.NOT_FOUND);
+        super("BAD_URL", HttpStatus.BAD_REQUEST);
     }
-
 }

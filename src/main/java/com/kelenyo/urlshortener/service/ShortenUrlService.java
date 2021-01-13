@@ -3,11 +3,12 @@ package com.kelenyo.urlshortener.service;
 import com.kelenyo.urlshortener.dto.UrlRequest;
 import com.kelenyo.urlshortener.models.ShortenUrl;
 import com.kelenyo.urlshortener.repositories.ShortenUrlRepository;
+import com.kelenyo.urlshortener.service.exception.AlreadyExistingCodeException;
+import com.kelenyo.urlshortener.service.exception.AlreadyExistingUrlException;
 import com.kelenyo.urlshortener.service.exception.UnknownCodeException;
 import com.kelenyo.urlshortener.service.exception.UnknownUrlException;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,7 +25,6 @@ public class ShortenUrlService {
     }
 
     public ShortenUrl convertToShortUrlAndSave(UrlRequest urlRequest) {
-
         if(validateURL(urlRequest.getUrl())) {
             var shortenUrl = new ShortenUrl();
             String url = sanitizeURL(urlRequest.getUrl());
@@ -34,13 +34,13 @@ public class ShortenUrlService {
             Optional<ShortenUrl> exitCode = Optional.ofNullable(shortenUrlRepository.findByCode(urlRequest.getCode()));
 
             if(exitURL.isPresent()) {
-                throw new UnknownUrlException();
+                throw new AlreadyExistingUrlException();
             } else if(exitCode.isPresent()) {
-                throw new UnknownCodeException();
+                throw new AlreadyExistingCodeException();
             } else {
                 shortenUrl.setUrl(url);
                 shortenUrl.setCreated(LocalDateTime.now());
-                shortenUrl.setCode("9hvgvf");
+                shortenUrl.setCode(conversion.generateRandomAlphanumericString());
                 shortenUrlRepository.save(shortenUrl);
 
                 return shortenUrl;
@@ -53,7 +53,7 @@ public class ShortenUrlService {
 
     public String getOriginalUrl(String shortUrlCode) {
         Optional<ShortenUrl> entity = Optional.ofNullable(shortenUrlRepository.findByCode(shortUrlCode));
-        if(!entity.isPresent()) {
+        if(entity.isEmpty()) {
             throw new UnknownCodeException();
         }
 
@@ -71,12 +71,6 @@ public class ShortenUrlService {
     }
 
     private String sanitizeURL(String url) {
-        if (url.startsWith("http://"))
-            url = url.substring(7);
-
-        if (url.startsWith("https://"))
-            url = url.substring(8);
-
         if (url.charAt(url.length() - 1) == '/')
             url = url.substring(0, url.length() - 1);
         return url;
