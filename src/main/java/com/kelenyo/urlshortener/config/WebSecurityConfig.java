@@ -17,15 +17,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements WebMvcConfigurer, ApplicationContextAware {
 
     @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable()
-                .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS,"/**").permitAll()
-                .anyRequest().authenticated()
+    protected void configure(HttpSecurity httpSecurity) throws Exception {
+        httpSecurity
+                .httpBasic()
                 .and()
-                .httpBasic();
-        http
+                .authorizeRequests()
+                .antMatchers(HttpMethod.POST, "/createshorturl/**").hasRole("ADMIN")
+                .antMatchers(HttpMethod.OPTIONS,"/**").permitAll()
+                .and()
+                .csrf().disable()
+                .formLogin().disable();
+        httpSecurity
                 .headers()
                 .addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN));
     }
@@ -33,7 +35,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins("http://localhost:8080", "http://localhost:3000","171.0.0.1:3000")
+                .allowedOrigins("*")
                 .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE")
                 .allowedHeaders("X-Auth-Token", "Content-Type")
                 .exposedHeaders("custom-header1", "custom-header2")
@@ -44,9 +46,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
     @Autowired
     public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.inMemoryAuthentication()
+                .withUser("user").password("{noop}demo").roles("USER")
+                .and()
                 .withUser("admin")
                 .password("{noop}demo")
-                .roles("ADMIN");
+                .roles("USER", "ADMIN");
     }
 
 }
