@@ -15,7 +15,6 @@ import java.util.Optional;
 
 @Service
 public class ShortenUrlService {
-
     private final ShortenUrlRepository shortenUrlRepository;
     private final BaseConversion conversion;
 
@@ -27,20 +26,28 @@ public class ShortenUrlService {
     public ShortenUrl convertToShortUrlAndSave(UrlRequest urlRequest) {
         if(validateURL(urlRequest.getUrl())) {
             var shortenUrl = new ShortenUrl();
-            String url = sanitizeURL(urlRequest.getUrl());
+            String url = sanitizeChunk(urlRequest.getUrl());
+            String code = sanitizeChunk(urlRequest.getCode());
+
+            checkCode(code);
 
             // Check if the url is already entered in the db.
-            Optional<ShortenUrl> exitURL = Optional.ofNullable(shortenUrlRepository.findByUrl(url));
-            Optional<ShortenUrl> exitCode = Optional.ofNullable(shortenUrlRepository.findByCode(urlRequest.getCode()));
+            Optional<ShortenUrl> dbURL = Optional.ofNullable(shortenUrlRepository.findByUrl(url));
+            Optional<ShortenUrl> dbCode = Optional.ofNullable(shortenUrlRepository.findByCode(code));
 
-            if(exitURL.isPresent()) {
+            if(dbURL.isPresent()) {
                 throw new AlreadyExistingUrlException();
-            } else if(exitCode.isPresent()) {
+            } else if(dbCode.isPresent()) {
                 throw new AlreadyExistingCodeException();
             } else {
+                if (code.isEmpty()) {
+                    shortenUrl.setCode(conversion.generateRandomAlphanumericString());
+                } else {
+                    shortenUrl.setCode(code);
+                }
+
                 shortenUrl.setUrl(url);
                 shortenUrl.setCreated(LocalDateTime.now());
-                shortenUrl.setCode(conversion.generateRandomAlphanumericString());
                 shortenUrlRepository.save(shortenUrl);
 
                 return shortenUrl;
@@ -62,7 +69,6 @@ public class ShortenUrlService {
 
     private boolean validateURL(String url) {
         try {
-
             new URL(url).toURI();
             return true;
         }
@@ -71,10 +77,16 @@ public class ShortenUrlService {
         }
     }
 
-    private String sanitizeURL(String url) {
-        if (url.charAt(url.length() - 1) == '/')
-            url = url.substring(0, url.length() - 1);
-        return url;
+    private String sanitizeChunk(String chunk) {
+        if (chunk.charAt(chunk.length() - 1) == '/')
+            chunk = chunk.substring(0, chunk.length() - 1);
+
+        return chunk;
     }
 
+    private void checkCode(String code) {
+        String ALPHANUMERIC_PATTERN = "^[a-zA-Z0-9]+$";
+        if (code.length() > 6 || code.matches(ALPHANUMERIC_PATTERN))
+            throw new UnknownCodeException();
+    }
 }
