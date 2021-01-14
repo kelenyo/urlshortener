@@ -27,7 +27,7 @@ public class ShortenUrlService {
         if(validateURL(urlRequest.getUrl())) {
             var shortenUrl = new ShortenUrl();
             String url = sanitizeChunk(urlRequest.getUrl());
-            String code = sanitizeChunk(urlRequest.getCode());
+            String code = urlRequest.getCode();
 
             checkCode(code);
 
@@ -85,8 +85,7 @@ public class ShortenUrlService {
     }
 
     private void checkCode(String code) {
-        String ALPHANUMERIC_PATTERN = "^[a-zA-Z0-9]+$";
-        if (code.length() > 6 || code.matches(ALPHANUMERIC_PATTERN))
+        if (code.length() > 6 || code.matches("^[a-zA-Z0-9]+$"))
             throw new UnknownCodeException();
     }
 }
