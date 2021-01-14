@@ -37,10 +37,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter implements W
         registry.addMapping("/**")
                 .allowedOrigins("*")
                 .allowedMethods("POST", "GET", "PUT", "OPTIONS", "DELETE")
-                .allowedHeaders("X-Auth-Token", "Content-Type")
-                .exposedHeaders("custom-header1", "custom-header2")
-                .allowCredentials(false)
-                .maxAge(4800);
+                .allowedHeaders("*");
     }
 
     @Autowired
